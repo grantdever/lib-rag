@@ -121,7 +121,7 @@ def make_embed_fn(provider: str) -> tuple[EmbedBatchFn, EmbedQueryFn]:
         raise click.ClickException(f"Unknown embedding provider: {provider}")
 
 
-def get_llm_client(provider: str) -> tuple:
+def get_llm_client(provider: str) -> tuple[object, str]:
     """Return (OpenAI_client, model_name) for LLM calls (map generation)."""
     from openai import OpenAI
 

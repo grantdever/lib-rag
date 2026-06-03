@@ -223,7 +223,7 @@ The third chapter examines the contemporary landscape. How do we rebuild
 community in an age of mass media and geographic mobility?
 
 The answer lies not in nostalgic return but in creating new forms of
-association adapted to modern conditions. This is the localist project.
+association adapted to modern conditions. This is the pluralist project.
 """
 
 
@@ -312,7 +312,7 @@ class TestChunkingPipeline:
         # Key phrases from each chapter should appear
         assert "foundation of social life" in all_parent_text
         assert "Tocqueville" in all_parent_text
-        assert "localist project" in all_parent_text
+        assert "pluralist project" in all_parent_text
 
 
 # ============================================================
