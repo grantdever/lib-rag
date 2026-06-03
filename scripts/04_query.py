@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
+from typing import Any
 
 import click
 import lancedb
@@ -30,7 +31,7 @@ def _escape_sql(value: str) -> str:
     return value.replace("'", "''")
 
 
-def _apply_filters(query, filters: dict):
+def _apply_filters(query: Any, filters: dict) -> Any:
     """Apply book_id and author filters to a LanceDB query."""
     if filters.get("book_id"):
         q = query.where(f"book_id = '{_escape_sql(filters['book_id'])}'")
@@ -41,27 +42,28 @@ def _apply_filters(query, filters: dict):
     return q
 
 
-def vector_search(children_table, query_vec: list[float], top_k: int, filters: dict) -> list[dict]:
+def vector_search(children_table: Any, query_vec: list[float], top_k: int, filters: dict) -> list[dict]:
     """Search children table by vector similarity."""
     q = children_table.search(query_vec).limit(top_k)
     q = _apply_filters(q, filters)
     return q.to_list()
 
 
-def fts_search(parents_table, query_text: str, top_k: int, filters: dict) -> list[dict]:
+def fts_search(parents_table: Any, query_text: str, top_k: int, filters: dict) -> list[dict]:
     """Search parents table by full-text search (BM25)."""
     try:
         q = parents_table.search(query_text, query_type="fts").limit(top_k)
         q = _apply_filters(q, filters)
         return q.to_list()
-    except Exception:
+    except Exception as e:
+        console.print(f"[yellow]Warning: FTS search failed (keyword results unavailable): {e}[/yellow]", highlight=False)
         return []
 
 
 def reciprocal_rank_fusion(
     vector_results: list[dict],
     fts_results: list[dict],
-    parents_table,
+    parents_table: Any,
     top_k: int,
 ) -> list[dict]:
     """Merge vector (child) and FTS (parent) results via RRF, return parent records."""
@@ -86,22 +88,27 @@ def reciprocal_rank_fusion(
     # Build a lookup from FTS results first
     fts_lookup = {r["id"]: r for r in fts_results if "id" in r}
 
+    # Batch-fetch any parents not already in FTS results
+    missing_pids = [pid for pid, _ in sorted_pids if pid not in fts_lookup]
+    fetched_lookup = {}
+    if missing_pids:
+        try:
+            id_list = ", ".join(f"'{_escape_sql(pid)}'" for pid in missing_pids)
+            rows = parents_table.search().where(f"id IN ({id_list})").limit(len(missing_pids)).to_list()
+            fetched_lookup = {r["id"]: r for r in rows}
+        except Exception as e:
+            console.print(f"[yellow]Warning: batch parent fetch failed: {e}[/yellow]", highlight=False)
+
     results = []
     for pid, score in sorted_pids:
         if pid in fts_lookup:
             record = dict(fts_lookup[pid])
-            record["_rrf_score"] = score
-            results.append(record)
+        elif pid in fetched_lookup:
+            record = dict(fetched_lookup[pid])
         else:
-            # Fetch from parents table
-            try:
-                rows = parents_table.search().where(f"id = '{_escape_sql(pid)}'").limit(1).to_list()
-                if rows:
-                    record = dict(rows[0])
-                    record["_rrf_score"] = score
-                    results.append(record)
-            except Exception as e:
-                console.print(f"[yellow]Warning: failed to fetch parent {pid}: {e}[/yellow]", highlight=False)
+            continue
+        record["_rrf_score"] = score
+        results.append(record)
 
     return results
 
@@ -181,15 +188,12 @@ def format_obsidian(query: str, results: list[dict]) -> tuple[str, str]:
         if len(text) > 500:
             preview += "..."
 
-        # Clean chapter title for wikilink anchor (Obsidian style)
-        anchor = chapter.replace(" ", " ")
-
         lines.extend([
             f"## {i+1}. ({score_str}) {author} — *{title}*, Ch. {ch_num}",
             "",
             f"> {preview}",
             "",
-            f"Source: [[{book_id}#{anchor}]]",
+            f"Source: [[{book_id}#{chapter}]]",
             "",
             "---",
             "",
@@ -236,22 +240,33 @@ def main(query: str, top_k: int, book_filter: str, author_filter: str, mode: str
     if mode == "hybrid":
         results = reciprocal_rank_fusion(vector_results, fts_results, parents_table, top_k)
     elif mode == "semantic":
-        # Map child results to parents
-        parent_ids_seen = set()
-        results = []
+        # Map child results to parents — deduplicate and batch-fetch
+        seen = set()
+        unique_children = []
         for child in vector_results:
             pid = child.get("parent_id", "")
-            if pid in parent_ids_seen:
-                continue
-            parent_ids_seen.add(pid)
+            if pid not in seen:
+                seen.add(pid)
+                unique_children.append(child)
+
+        # Batch-fetch parent records
+        pids_to_fetch = [c.get("parent_id", "") for c in unique_children[:fetch_k]]
+        parent_lookup = {}
+        if pids_to_fetch:
             try:
-                rows = parents_table.search().where(f"id = '{_escape_sql(pid)}'").limit(1).to_list()
-                if rows:
-                    record = dict(rows[0])
-                    record["_score"] = child.get("_distance", 0)
-                    results.append(record)
+                id_list = ", ".join(f"'{_escape_sql(pid)}'" for pid in pids_to_fetch)
+                rows = parents_table.search().where(f"id IN ({id_list})").limit(len(pids_to_fetch)).to_list()
+                parent_lookup = {r["id"]: r for r in rows}
             except Exception as e:
-                console.print(f"[yellow]Warning: failed to fetch parent {pid}: {e}[/yellow]", highlight=False)
+                console.print(f"[yellow]Warning: batch parent fetch failed: {e}[/yellow]", highlight=False)
+
+        results = []
+        for child in unique_children:
+            pid = child.get("parent_id", "")
+            if pid in parent_lookup:
+                record = dict(parent_lookup[pid])
+                record["_score"] = 1.0 - child.get("_distance", 0)
+                results.append(record)
             if len(results) >= top_k:
                 break
     else:  # keyword

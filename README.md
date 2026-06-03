@@ -161,7 +161,7 @@ launchctl load ~/Library/LaunchAgents/com.user.bookpipeline.watcher.plist
 | `pipeline/` | File-drop ingestion (watcher, triage, convert, cleanup, fan-out) |
 | `source/` | Original EPUB/PDF files (gitignored) |
 | `markdown/` | Cleaned Markdown output (gitignored) |
-| `maps/` | JSON book maps |
+| `maps/` | JSON book maps (2 examples included to show the schema) |
 | `index/` | LanceDB vector store (gitignored) |
 | `launchctl/` | macOS launchd plists |
 

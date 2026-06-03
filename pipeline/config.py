@@ -69,7 +69,7 @@ class PathsConfig:
     done: Path = field(default_factory=lambda: Path.home() / "inbox" / "done")
     quarantine: Path = field(default_factory=lambda: Path.home() / "inbox" / "quarantine")
     staging: Path = field(default_factory=lambda: Path.home() / "staging")
-    obsidian_vault: Path = field(default_factory=lambda: Path.home() / "Desktop" / "Vault")
+    obsidian_vault: Path = field(default_factory=lambda: Path.home() / "obsidian" / "vault")
     repo_root: Path = field(default_factory=lambda: _REPO_ROOT)
 
     @property

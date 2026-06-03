@@ -6,6 +6,7 @@ Uses Resend (resend.com) for email delivery with EPUB attachment.
 
 from __future__ import annotations
 
+import base64
 import logging
 import subprocess
 from pathlib import Path
@@ -61,7 +62,7 @@ def create_epub_from_markdown(
         return False
 
 
-def _extract_metadata(staging_folder: Path) -> dict:
+def _extract_metadata(staging_folder: Path, cfg: PipelineConfig) -> dict:
     """Extract book metadata from meta.json and the book map if available."""
     meta = read_meta(staging_folder)
     original_name = meta.get("original_name", staging_folder.name)
@@ -69,9 +70,6 @@ def _extract_metadata(staging_folder: Path) -> dict:
 
     result = {"title": title, "author": ""}
 
-    # Try to find a book map for richer metadata
-    from pipeline.config import PipelineConfig, load_config
-    cfg = load_config()
     book_id = meta.get("book_id", "")
 
     if book_id:
@@ -84,8 +82,8 @@ def _extract_metadata(staging_folder: Path) -> dict:
                 result["author"] = book_map.get("author", "")
                 result["description"] = book_map.get("summary", "")
                 result["subjects"] = book_map.get("key_themes", [])[:5]
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Failed to read book map %s: %s", map_path.name, e)
 
     return result
 
@@ -121,7 +119,7 @@ def send_to_kindle(epub_path: Path, cfg: PipelineConfig, book_title: str = "") -
             "attachments": [
                 {
                     "filename": epub_path.name,
-                    "content": list(epub_data),
+                    "content": base64.b64encode(epub_data).decode("ascii"),
                     "content_type": "application/epub+zip",
                 }
             ],
@@ -150,7 +148,7 @@ def process_kindle(staging_folder: Path, cfg: PipelineConfig) -> bool:
 
     meta = read_meta(staging_folder)
     original_name = meta.get("original_name", staging_folder.name)
-    book_meta = _extract_metadata(staging_folder)
+    book_meta = _extract_metadata(staging_folder, cfg)
 
     # Check if source is EPUB (send original directly)
     source_epub = staging_folder / "source.epub"

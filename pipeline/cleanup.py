@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 
 from pipeline.config import PipelineConfig
-from pipeline.queue import write_meta
+from pipeline.queue import read_meta, write_meta
 
 logger = logging.getLogger(__name__)
 
@@ -136,12 +136,10 @@ def pdf_cleanup(text: str) -> str:
 def regex_cleanup(text: str) -> str:
     """Apply regex-based cleanup rules.
 
-    These handle Pandoc artifacts, HTML remnants, header fixing, and
-    broken word repair. Ported from the existing EPUB conversion pipeline.
+    Handles Pandoc artifacts, HTML remnants, header fixing, and broken word
+    repair. For PDF-specific fixes (spaced capitals, running headers), call
+    pdf_cleanup() separately before this function.
     """
-    # PDF-specific fixes (soft hyphens, spaced caps, running headers)
-    text = pdf_cleanup(text)
-
     # Line-level cleaning
     lines = text.split("\n")
     cleaned = []
@@ -332,7 +330,7 @@ def deepseek_fuzzy_cleanup(text: str, api_key: str) -> str:
         base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
         default_headers={
-            "HTTP-Referer": "https://github.com/ali-books",
+            "HTTP-Referer": "https://github.com/grantdever/lib-rag",
             "X-Title": "lib-rag",
         },
     )
@@ -390,13 +388,18 @@ def cleanup_markdown(
     if cfg.cleanup.strip_tables:
         text = strip_tables(text)
 
-    # Step 2: Regex cleanup
+    # Step 2: PDF-specific fixes (only for PDF sources — skip for EPUBs
+    # to avoid false-positive mutations from spaced-capital regex)
+    if source_type == "pdf":
+        text = pdf_cleanup(text)
+
+    # Step 3: Regex cleanup (Pandoc artifacts, header fixing — applies to all sources)
     text = regex_cleanup(text)
 
-    # Step 3: Pandoc round-trip
+    # Step 4: Pandoc round-trip
     text = pandoc_normalize(text)
 
-    # Step 4: Quality check + optional fuzzy pass
+    # Step 5: Quality check + optional fuzzy pass
     quality = compute_quality_score(text)
     stats["quality_score"] = round(quality, 3)
     stats["cleanup_method"] = "regex+pandoc"
@@ -424,7 +427,7 @@ def process_cleanup(staging_folder: Path, cfg: PipelineConfig) -> bool:
         return False
 
     raw_text = raw_path.read_text(encoding="utf-8")
-    meta = dict(read_meta(staging_folder))  # avoid import cycle by using dict()
+    meta = dict(read_meta(staging_folder))
     source_type = meta.get("file_type", "pdf")
 
     cleaned, stats = cleanup_markdown(raw_text, cfg, source_type)
@@ -443,7 +446,3 @@ def process_cleanup(staging_folder: Path, cfg: PipelineConfig) -> bool:
         len(cleaned),
     )
     return True
-
-
-# Need to import read_meta at function level to avoid issues
-from pipeline.queue import read_meta  # noqa: E402

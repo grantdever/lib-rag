@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 import click
@@ -15,7 +16,7 @@ load_dotenv(ROOT / ".env")
 EMBED_DIMS = 768
 
 OPENROUTER_HEADERS = {
-    "HTTP-Referer": "https://github.com/ali-books",
+    "HTTP-Referer": "https://github.com/grantdever/lib-rag",
     "X-Title": "lib-rag",
 }
 
@@ -38,25 +39,30 @@ EMBED_MODEL = "google/gemini-embedding-001"
 EMBED_MODEL_GEMINI = "gemini-embedding-001"
 
 
-def is_retryable(exc) -> bool:
+def is_retryable(exc: BaseException) -> bool:
     """Check if an exception is retryable (rate limits, transient errors)."""
     if hasattr(exc, "status_code"):
         return exc.status_code in (429, 500, 502, 503)
     exc_str = str(exc)
-    return "429" in exc_str or "500" in exc_str or "503" in exc_str or "RESOURCE_EXHAUSTED" in exc_str
+    return "429" in exc_str or "500" in exc_str or "502" in exc_str or "503" in exc_str or "RESOURCE_EXHAUSTED" in exc_str
 
 
 def validate_api_key(provider: str) -> str:
     """Validate and return the API key for the given provider. Raises on failure."""
-    env_var = "OPENROUTER_API_KEY" if provider == "openrouter" else "GEMINI_API_KEY"
+    if provider not in LLM_PROVIDERS:
+        raise click.ClickException(f"Unknown provider: {provider}")
+    env_var = LLM_PROVIDERS[provider]["api_key_env"]
     api_key = os.getenv(env_var)
-    if not api_key or api_key in ("...", "sk-or-...") or api_key.startswith("sk-or-..."):
-        url = "https://openrouter.ai/" if provider == "openrouter" else "https://aistudio.google.com/apikey"
-        raise click.ClickException(f"Missing {env_var} in .env — get one from {url}")
+    if not api_key or api_key in ("...", "sk-or-..."):
+        raise click.ClickException(f"Missing {env_var} in .env")
     return api_key
 
 
-def make_embed_fn(provider: str):
+EmbedBatchFn = Callable[[list[str]], list[list[float]]]
+EmbedQueryFn = Callable[[str], list[float]]
+
+
+def make_embed_fn(provider: str) -> tuple[EmbedBatchFn, EmbedQueryFn]:
     """Return an (embed_batch, embed_query) tuple for the chosen provider.
 
     embed_batch(texts: list[str]) -> list[list[float]]  — for indexing
@@ -115,7 +121,7 @@ def make_embed_fn(provider: str):
         raise click.ClickException(f"Unknown embedding provider: {provider}")
 
 
-def get_llm_client(provider: str):
+def get_llm_client(provider: str) -> tuple:
     """Return (OpenAI_client, model_name) for LLM calls (map generation)."""
     from openai import OpenAI
 

@@ -9,7 +9,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from pipeline.queue import read_meta, write_meta
+from pipeline.queue import write_meta
+from pipeline.triage import get_pdf_page_count
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +30,8 @@ def convert_pdf_to_markdown(pdf_path: Path) -> str:
     import pymupdf
     import pymupdf4llm
 
-    doc = pymupdf.open(str(pdf_path))
-    total = len(doc)
-    doc.close()
+    with pymupdf.open(str(pdf_path)) as doc:
+        total = len(doc)
 
     BATCH = 50
     logger.info("Converting %d pages from %s (text-layer only, no OCR)", total, pdf_path.name)
@@ -50,15 +50,6 @@ def convert_pdf_to_markdown(pdf_path: Path) -> str:
         logger.info("  pages %d–%d / %d done", start + 1, end, total)
 
     return "\n\n".join(chunks)
-
-
-def get_page_count(pdf_path: Path) -> int:
-    """Get page count for quality gate calculation."""
-    import pymupdf
-    doc = pymupdf.open(str(pdf_path))
-    count = len(doc)
-    doc.close()
-    return count
 
 
 def process_local_pdf(staging_folder: Path) -> str | None:
@@ -83,7 +74,7 @@ def process_local_pdf(staging_folder: Path) -> str | None:
     raw_path.write_text(md_text, encoding="utf-8")
 
     # Quality gate
-    page_count = get_page_count(source)
+    page_count = get_pdf_page_count(source)
     chars_per_page = len(md_text) / max(page_count, 1)
 
     write_meta(

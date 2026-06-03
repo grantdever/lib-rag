@@ -1,0 +1,31 @@
+[project]
+name = "lib-rag"
+version = "1.0.0"
+description = "RAG pipeline for building a queryable, indexed library from book-length PDFs and EPUBs"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "lancedb>=0.12.0",
+    "openai>=1.60.0",
+    "google-genai>=2.6.0",
+    "pyyaml>=6.0.2",
+    "tiktoken>=0.8.0",
+    "pypandoc>=1.14",
+    "click>=8.1.8",
+    "rich>=13.9.0",
+    "python-dotenv>=1.0.1",
+    "tenacity>=9.0.0",
+    "resend>=2.0.0",
+    "watchdog>=4.0.0",
+    "pymupdf4llm>=0.0.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"

@@ -142,11 +142,9 @@ def index_book(book_id: str, md_path: Path, cfg: PipelineConfig) -> bool:
             embed_batch, parents_table, children_table, book_data, db_lock
         )
 
-        # Rebuild FTS index
-        try:
-            parents_table.create_fts_index("text", replace=True)
-        except Exception as e:
-            logger.warning("FTS index rebuild warning: %s", e)
+        # Note: FTS index is not rebuilt here per-book — the batch script
+        # (03_build_index.py) rebuilds it after all books are processed.
+        # For single-book ingest, run the build script or query with --mode semantic.
 
         logger.info(
             "%s: indexed %d parents, %d children",

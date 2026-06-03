@@ -30,32 +30,29 @@ def probe_pdf_text_layer(pdf_path: Path) -> dict:
         total_pages: int
         classification: "native" | "scanned"
     """
-    doc = pymupdf.open(str(pdf_path))
-    total_pages = len(doc)
+    with pymupdf.open(str(pdf_path)) as doc:
+        total_pages = len(doc)
 
-    if total_pages == 0:
-        doc.close()
-        return {
-            "avg_chars_per_page": 0,
-            "sampled_pages": 0,
-            "total_pages": 0,
-            "classification": "scanned",
-        }
+        if total_pages == 0:
+            return {
+                "avg_chars_per_page": 0,
+                "sampled_pages": 0,
+                "total_pages": 0,
+                "classification": "scanned",
+            }
 
-    # Sample up to SAMPLE_PAGES evenly distributed pages
-    if total_pages <= SAMPLE_PAGES:
-        sample_indices = list(range(total_pages))
-    else:
-        step = total_pages / SAMPLE_PAGES
-        sample_indices = [int(i * step) for i in range(SAMPLE_PAGES)]
+        # Sample up to SAMPLE_PAGES evenly distributed pages
+        if total_pages <= SAMPLE_PAGES:
+            sample_indices = list(range(total_pages))
+        else:
+            step = total_pages / SAMPLE_PAGES
+            sample_indices = [int(i * step) for i in range(SAMPLE_PAGES)]
 
-    total_chars = 0
-    for idx in sample_indices:
-        page = doc[idx]
-        text = page.get_text("text")
-        total_chars += len(text.strip())
-
-    doc.close()
+        total_chars = 0
+        for idx in sample_indices:
+            page = doc[idx]
+            text = page.get_text("text")
+            total_chars += len(text.strip())
 
     avg_chars = total_chars / len(sample_indices) if sample_indices else 0
     classification = "native" if avg_chars >= MIN_CHARS_PER_PAGE else "scanned"
@@ -70,10 +67,8 @@ def probe_pdf_text_layer(pdf_path: Path) -> dict:
 
 def get_pdf_page_count(pdf_path: Path) -> int:
     """Quick page count without full text extraction."""
-    doc = pymupdf.open(str(pdf_path))
-    count = len(doc)
-    doc.close()
-    return count
+    with pymupdf.open(str(pdf_path)) as doc:
+        return len(doc)
 
 
 def classify_file(file_path: Path) -> dict:

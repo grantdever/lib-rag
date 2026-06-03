@@ -44,6 +44,7 @@ def split_chapters(text: str) -> list[dict]:
     current_title = None
     current_lines = []
     current_start = 0
+    char_offset = 0
 
     for i, line in enumerate(lines):
         if line.startswith("# "):
@@ -55,9 +56,10 @@ def split_chapters(text: str) -> list[dict]:
                 })
             current_title = line[2:].strip()
             current_lines = [line]
-            current_start = sum(len(l) + 1 for l in lines[:i])
+            current_start = char_offset
         else:
             current_lines.append(line)
+        char_offset += len(line) + 1  # +1 for the newline
 
     if current_title is not None or current_lines:
         chapters.append({
@@ -297,8 +299,8 @@ def main(force: bool, provider: str, workers: int, book: str):
         try:
             existing = parents_table.search().select(["book_id"]).limit(100_000).to_list()
             indexed_books = {r["book_id"] for r in existing}
-        except Exception:
-            pass
+        except Exception as e:
+            console.print(f"[yellow]Warning: could not read indexed books (will re-index all): {e}[/yellow]")
 
     if book:
         md_files = [MARKDOWN_DIR / f"{book}.md"]

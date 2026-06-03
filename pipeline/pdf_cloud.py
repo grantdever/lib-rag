@@ -20,7 +20,8 @@ from pathlib import Path
 
 import requests
 
-from pipeline.queue import read_meta, write_meta
+from pipeline.queue import write_meta
+from pipeline.triage import get_pdf_page_count
 
 logger = logging.getLogger(__name__)
 
@@ -39,28 +40,18 @@ SYSTEM_PROMPT = (
 
 
 def _get_api_key() -> str:
-    """Get OpenRouter API key from env or .env file."""
-    key = os.getenv("OPENROUTER_API_KEY", "")
-    if not key:
-        env_path = Path(__file__).resolve().parent.parent / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                if line.startswith("OPENROUTER_API_KEY="):
-                    key = line.split("=", 1)[1].strip()
-    return key
+    """Get OpenRouter API key from environment (loaded by dotenv at startup)."""
+    return os.getenv("OPENROUTER_API_KEY", "")
 
 
 def _split_pdf(pdf_path: Path, start: int, end: int) -> bytes:
     """Extract pages [start, end) into a new PDF and return its bytes."""
     import pymupdf
 
-    doc = pymupdf.open(str(pdf_path))
-    out = pymupdf.open()
-    out.insert_pdf(doc, from_page=start, to_page=end - 1)
-    pdf_bytes = out.tobytes()
-    out.close()
-    doc.close()
-    return pdf_bytes
+    with pymupdf.open(str(pdf_path)) as doc:
+        with pymupdf.open() as out:
+            out.insert_pdf(doc, from_page=start, to_page=end - 1)
+            return out.tobytes()
 
 
 def _convert_batch(pdf_bytes: bytes, filename: str, api_key: str) -> str | None:
@@ -153,9 +144,8 @@ def convert_pdf_cloud(pdf_path: Path, staging_folder: Path | None = None) -> str
         logger.error("No OPENROUTER_API_KEY found")
         return None
 
-    doc = pymupdf.open(str(pdf_path))
-    total = len(doc)
-    doc.close()
+    with pymupdf.open(str(pdf_path)) as doc:
+        total = len(doc)
 
     num_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
     logger.info(
@@ -235,10 +225,7 @@ def process_cloud_pdf(staging_folder: Path) -> str | None:
     raw_path = staging_folder / "raw.md"
     raw_path.write_text(md_text, encoding="utf-8")
 
-    import pymupdf
-    doc = pymupdf.open(str(source))
-    page_count = len(doc)
-    doc.close()
+    page_count = get_pdf_page_count(source)
 
     chars_per_page = len(md_text) / max(page_count, 1)
 
