@@ -52,7 +52,36 @@ cp ~/path/to/book.epub source/author-short-title.epub
 .venv/bin/python3 scripts/04_query.py "your question here" --top-k 5
 ```
 
-## Query options
+## Querying
+
+Once you've indexed a book, you can search it. The repo includes two example book maps (Burke's *Reflections on the Revolution in France* and Nisbet's *Quest for Community*) to show the schema — index your own books to query them.
+
+### Example
+
+```bash
+# Hybrid search (semantic + keyword) — best for most queries
+$ .venv/bin/python3 scripts/04_query.py "why are inherited institutions important" --top-k 3
+
+[0.0328] Edmund Burke — Reflections on the Revolution in France, Ch. 1: Reflections on the Revolution in France
+  You will observe that from Magna Charta to the Declaration of Right it has
+  been the uniform policy of our constitution to claim and assert our liberties
+  as an entailed inheritance derived to us from our forefathers...
+  → markdown/burke-reflections-on-the-revolution.md
+
+[0.0272] Edmund Burke — Reflections on the Revolution in France, Ch. 1: Reflections on the Revolution in France
+  By this means our constitution preserves a unity in so great a diversity of
+  its parts. We have an inheritable crown, an inheritable peerage, and a House
+  of Commons and a people inheriting privileges, franchises, and liberties...
+  → markdown/burke-reflections-on-the-revolution.md
+
+# Keyword search — exact phrase hunting
+$ .venv/bin/python3 scripts/04_query.py "entailed inheritance" --mode keyword --top-k 3
+
+# JSON output — for piping to other tools or LLMs
+$ .venv/bin/python3 scripts/04_query.py "tradition vs abstract reason" --format json --top-k 5
+```
+
+### Options
 
 ```bash
 .venv/bin/python3 scripts/04_query.py "your query" [options]
@@ -67,9 +96,10 @@ cp ~/path/to/book.epub source/author-short-title.epub
 | `--author-filter` | partial name | none | Filter by author |
 | `--book-filter` | exact book_id | none | Filter by book |
 
-- **`hybrid`** — best for most queries, combines semantic + keyword
-- **`keyword`** — exact phrase hunting
-- **`semantic`** — conceptual queries where exact words won't appear
+**When to use which mode:**
+- **`hybrid`** (default) — best for most queries, combines semantic + keyword via Reciprocal Rank Fusion
+- **`keyword`** — exact phrase hunting ("entailed inheritance", "social contract")
+- **`semantic`** — conceptual queries where the exact words won't appear in the text
 
 ## Pipeline architecture
 
@@ -95,7 +125,7 @@ For automated ingestion, drop a PDF or EPUB into `~/inbox/books/`:
 
 ### How conversion works
 
-**Cloud (default):** Gemini 2.5 Flash via OpenRouter. The PDF is split into ~100-page chunks, each uploaded natively to Gemini. Produces reading-quality markdown with proper paragraphs, dehyphenation, footnote preservation, and header/footer removal. Cost: ~$0.15 per 500 pages. Batches save incrementally, so interrupted conversions resume where they left off.
+**Cloud (default):** Gemini 2.5 Flash via OpenRouter. The PDF is split into ~100-page chunks, each uploaded natively to Gemini. Produces reading-quality markdown with proper paragraphs, dehyphenation, footnote preservation, and header/footer removal. Cost: ~$0.70–0.90 per 500 pages. Batches save incrementally, so interrupted conversions resume where they left off.
 
 **Local:** PyMuPDF4LLM. Free and fast, but lower quality — line-break artifacts, spaced capitals, running headers. Adequate for search indexing but not for reading.
 

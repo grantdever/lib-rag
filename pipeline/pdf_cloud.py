@@ -5,7 +5,7 @@ Produces reading-quality markdown suitable for EPUB/Kindle output —
 substantially better than PyMuPDF4LLM for paragraph reconstruction,
 dehyphenation, and header/footer removal.
 
-Cost: ~$0.15 per 500 pages (mostly output tokens).
+Cost: ~$0.70–0.90 per 500 pages (mostly output tokens).
 """
 
 from __future__ import annotations
