@@ -1,0 +1,39 @@
+# lib-rag Pipeline Configuration
+# Copy to ~/.config/book-pipeline/config.toml (auto-created on first run)
+
+[paths]
+inbox = "~/inbox/books"
+done = "~/inbox/done"
+quarantine = "~/inbox/quarantine"
+staging = "~/staging"
+obsidian_vault = "~/path/to/obsidian/vault"  # optional, for --format obsidian
+
+[conversion]
+# "cloud" = Gemini 2.5 Flash via OpenRouter (~$0.15/500 pages, reading-quality)
+# "local" = PyMuPDF4LLM (free, fast, lower quality)
+pdf_engine = "cloud"
+
+[workers]
+local_workers = 3          # multiprocessing pool size for PyMuPDF/pandoc
+cleanup_concurrency = 4    # max in-flight async cleanup tasks
+
+[cleanup]
+fuzzy_threshold = 0.7      # quality score below which DeepSeek cleanup is invoked
+strip_images = true
+strip_tables = true
+
+[kindle]
+# kindle_email = "yourname@kindle.com"
+# sender_email = "you@yourdomain.com"
+# Requires a verified sending domain in Resend (resend.com/domains)
+# resend_api_key is read from .env (RESEND_API_KEY)
+enabled = false
+
+[api_keys]
+# Read from .env by default. Override here if preferred.
+# openrouter = "sk-or-..."
+# gemini = "AIza..."
+# mistral = "..."
+
+[batch]
+poll_interval_minutes = 60

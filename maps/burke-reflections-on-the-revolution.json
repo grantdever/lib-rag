@@ -1,0 +1,104 @@
+{
+  "id": "burke-reflections-on-the-revolution",
+  "author": "Edmund Burke",
+  "title": "Reflections on the Revolution in France",
+  "year": 1790,
+  "source_epub": "source/burke-reflections-on-the-revolution.epub",
+  "source_md": "markdown/burke-reflections-on-the-revolution.md",
+  "summary": "Edmund Burke's 'Reflections on the Revolution in France' is a foundational text of modern conservative thought, written as a critical response to the French Revolution and its early supporters in Britain, particularly Richard Price. Burke argues that the revolution's radical break with tradition, its abstract rationalism, and its confiscation of church property will lead to tyranny and chaos, contrasting it with the gradual, prudent reform exemplified by the English Revolution of 1688. He defends inherited institutions, property rights, religion, and social hierarchy as essential to ordered liberty, predicting that the revolution will culminate in military despotism. The work has had a lasting influence as a polemic against revolutionary ideology and as a defense of pragmatic, historically informed political change.",
+  "key_themes": [
+    "conservatism",
+    "tradition",
+    "revolution criticism",
+    "property rights",
+    "religion in society",
+    "social hierarchy",
+    "prudence in politics",
+    "anti-rationalism",
+    "historical continuity",
+    "liberal skepticism"
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Reflections on the Revolution in France",
+      "summary": "Burke opens by addressing a young French correspondent, setting out his opposition to the French Revolution. He begins by criticizing the sermon of Dr. Richard Price, who had praised the revolution as a model for England, arguing that Price misinterprets the English Revolution of 1688 by claiming it established a right to choose and cashier kings. Burke defends the English constitutional settlement as a preservation of inherited rights, not a creation of new abstract ones. He establishes his method of judging political change by its practical consequences rather than by abstract theory.",
+      "key_arguments": [
+        "The English Revolution of 1688 was a preservation of ancient rights, not a vote of new abstract rights.",
+        "Political liberty must be 'manly, moral, regulated liberty,' not licentiousness.",
+        "Dr. Price's interpretation of 1688 as establishing popular sovereignty to choose and depose kings is a dangerous misreading.",
+        "Abstract theories of rights disregard the concrete circumstances and experiences that shape just governance.",
+        "A society's constitution is a product of historical accumulation, not a rational construction de novo."
+      ],
+      "themes": [
+        "conservatism",
+        "historical continuity",
+        "liberty",
+        "revolution criticism",
+        "prudence"
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Reflections on the Revolution in France (continued)",
+      "summary": "Burke develops his critique of the French revolutionaries, denouncing their reliance on 'the rights of man' and their destruction of all intermediary institutions like the nobility, church, and local corporations. He contrasts this with the British system that preserves a mixed government of King, Lords, and Commons, and maintains a hereditary aristocracy as a check on both monarchy and democracy. He argues that the French National Assembly, composed of obscure lawyers and financiers, lacks the wisdom and property to govern and will inevitably lead to anarchy and then military despotism. He defends the role of religious establishment as the foundation of civil society and warns that the confiscation of church property will subvert all property rights.",
+      "key_arguments": [
+        "Abstract 'rights of man' destroy the complex web of social relations and prescriptive ties that order society.",
+        "The destruction of the French nobility and church removes necessary 'intermediate powers' between the state and the individual.",
+        "A government composed of men of no property and no stake in the country will soon engage in 'a series of confiscation' to finance itself.",
+        "Religion is 'the basis of civil society' and its destruction 'unbinds the great aweful contract of eternal society.'",
+        "The new French system of representation, based on territorial departments, destroys all natural communities and creates a 'geographical morality.'",
+        "The revolution's confiscation of church lands and issuance of assignats will ruin public credit and lead to economic collapse."
+      ],
+      "themes": [
+        "religion in society",
+        "property rights",
+        "social hierarchy",
+        "anti-rationalism",
+        "representative government",
+        "economics"
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Reflections on the Revolution in France (continued)",
+      "summary": "Burke continues his detailed attack on the French National Assembly's administrative and financial policies. He denounces the division of France into new departments, which he sees as a mechanical and destructive plan that destroys local loyalties and historical communities. He also launches into a long and emotional defense of the French royal family, especially Marie Antoinette, as symbols of chivalry and the old European social order. He argues that the revolution represents a 'revolution of sentiments, manners, and moral opinions,' replacing the age of chivalry with that of 'sophisters, economists, and calculators.' He concludes by predicting that the revolutionary government will become a violent military despotism, and he urges the French to return to the principles of their ancien regime before it is too late.",
+      "key_arguments": [
+        "The new territorial division of France is an act of political geometry that destroys all natural and historical communities.",
+        "The revolution has extinguished the spirit of chivalry, which softened authority and made power gentle.",
+        "The violent treatment of the royal family, particularly the queen, demonstrates a loss of all 'decent drapery of life' and 'moral imagination.'",
+        "Laws alone are insufficient; they need the aid of manners, morals, and religion to secure obedience.",
+        "The principle of elective monarchy and popular sovereignty will inevitably lead to military rule because armies will become the ultimate arbiters of power.",
+        "The revolution's principles are like a 'contagion' that will spread to other nations unless checked."
+      ],
+      "themes": [
+        "manners and morals",
+        "anti-rationalism",
+        "chivalry",
+        "monarchy",
+        "revolution criticism",
+        "military despotism"
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Reflections on the Revolution in France (continued)",
+      "summary": "Burke concludes his work by comparing the French Revolution unfavorably to the English Revolution of 1688 and the Glorious Revolution's settlement. He argues that the French have ignored the lessons of history and experience, and have instead been led by abstract philosophers and 'men of theory' who scorn practical wisdom. He reaffirms his belief in the importance of prejudice as a source of social cohesion and pre-rational wisdom, and he urges the French to restore their monarchy and church, and to reform their institutions slowly and prudently rather than tearing them down. He ends with a prayer for France's recovery from its 'political distemper.'",
+      "key_arguments": [
+        "Prejudice ('the wisdom of unlettered men') is a more reliable guide in politics than abstract reason.",
+        "The English Revolution of 1688 was a conservative revolution that preserved the constitution; the French Revolution is a radical innovation that destroys it.",
+        "True political reform should aim to conserve and improve, not to destroy and rebuild from scratch.",
+        "A society is a partnership not only between the living, but between the living, the dead, and those yet to be born.",
+        "The French have made themselves slaves to their own abstract theories, and their liberty is thus a 'liberty of spoliation.'"
+      ],
+      "themes": [
+        "conservatism",
+        "tradition",
+        "historical continuity",
+        "prudence",
+        "prejudice",
+        "social contract"
+      ]
+    }
+  ]
+}

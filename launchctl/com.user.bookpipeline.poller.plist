@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.bookpipeline.poller</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/PATH/TO/lib-rag/.venv/bin/python3</string>
+        <string>-m</string>
+        <string>pipeline.batch</string>
+        <string>poll</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/PATH/TO/lib-rag</string>
+
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <key>StandardOutPath</key>
+    <string>/PATH/TO/LOGS/bookpipeline-poller.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/PATH/TO/LOGS/bookpipeline-poller.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>
