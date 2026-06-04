@@ -319,28 +319,26 @@ def compute_quality_score(text: str) -> float:
 # Optional DeepSeek fuzzy cleanup
 # ---------------------------------------------------------------------------
 
-def deepseek_fuzzy_cleanup(text: str, api_key: str) -> str:
-    """Use DeepSeek V3 via OpenRouter to fix remaining quality issues.
+def deepseek_fuzzy_cleanup(text: str) -> str:
+    """Use DeepSeek via OpenRouter to fix remaining quality issues.
 
     Only called when heuristic quality score is below threshold.
+    Uses the same LLM provider config as map generation (shared.py).
     """
-    from openai import OpenAI
+    import sys
+    scripts_dir = str(Path(__file__).resolve().parent.parent / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    from shared import get_llm_client
 
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key,
-        default_headers={
-            "HTTP-Referer": "https://github.com/grantdever/lib-rag",
-            "X-Title": "lib-rag",
-        },
-    )
+    client, model = get_llm_client("openrouter")
 
     # Process in chunks to stay within context limits
     # Take first ~20K chars for cleanup
     sample = text[:20_000]
 
     response = client.chat.completions.create(
-        model="deepseek/deepseek-v3",
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -407,7 +405,7 @@ def cleanup_markdown(
     if quality < cfg.cleanup.fuzzy_threshold and cfg.api_keys.openrouter:
         logger.info("Quality score %.2f < %.2f — running DeepSeek cleanup", quality, cfg.cleanup.fuzzy_threshold)
         try:
-            text = deepseek_fuzzy_cleanup(text, cfg.api_keys.openrouter)
+            text = deepseek_fuzzy_cleanup(text)
             stats["cleanup_method"] = "regex+pandoc+deepseek"
             stats["quality_score_post_deepseek"] = round(compute_quality_score(text), 3)
         except Exception as e:
